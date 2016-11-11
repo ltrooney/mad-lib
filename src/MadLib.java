@@ -3,6 +3,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Scanner;
@@ -11,12 +12,14 @@ import java.util.Scanner;
 public class MadLib {
 	
 	File file; 								// mad lib file
-	Hashtable<String, String[]> phrases;	// dictionary of words
+	Hashtable<String, Integer> phraseCount;
+	Hashtable<String, ArrayList<String>> phrases;	// dictionary of words
 	int numPhrases = 0; 	// keeps track of how many phrases are in the mad lib
 	
 	public MadLib(File f) {
 		file = f;
-		phrases = new Hashtable<String, String[]>();
+		phraseCount = new Hashtable<String, Integer>();
+		phrases = new Hashtable<String, ArrayList<String>>();
 	}
 	
 	public void compileLib() {
@@ -37,13 +40,13 @@ public class MadLib {
 				if(line.contains("(") && line.contains(")")) {
 					int openParen = line.indexOf("(");
 					int closeParen = line.indexOf(")");
-					String wordType = line.substring(openParen+1, closeParen);
+					String wordType = line.substring(openParen+1, closeParen);		// the type of phrase that will be asked
 					
-					if(phrases.containsKey(wordType)) {
-						phrases.put(wordType, new String[phrases.get(wordType).length+1]);
+					if(!phraseCount.containsKey(wordType)) {
+						phraseCount.put(wordType, 1);	
 					} else {
-						phrases.put(wordType, new String[1]);
-					}	
+						phraseCount.put(wordType, phraseCount.get(wordType) + 1);
+					}
 					numPhrases++;
 				}
 			}			
@@ -60,16 +63,18 @@ public class MadLib {
 		int counter = 1;
 		
 		// iterate through each empty phrase and get a value for it
-		for(Enumeration<String> e = phrases.keys(); e.hasMoreElements();) {
-			String wordType = e.nextElement();				// word type (key)
-			String[] phrasesArr = phrases.get(wordType);	// array of phrases (value)
+		for(Enumeration<String> e = phraseCount.keys(); e.hasMoreElements();) {
+			String wordType = e.nextElement();						// word type (key)
+			phrases.put(wordType, new ArrayList<String>());
 			
-			for(int i = 0; i < phrasesArr.length; i++) {
+			for(int i = 0; i < phraseCount.get(wordType); i++) {
 				System.out.print("("+counter+"/"+numPhrases+")  " + wordType + ": ");
-				String phrase = scan.nextLine();			// get the phrase
+				String phrase = scan.nextLine();					// get the phrase
 				counter++;
 			
-				phrasesArr[i] = phrase;
+				ArrayList<String> a = phrases.get(wordType);
+				a.add(phrase);										// appends the phrase to the value of the 'word type' key
+				phrases.put(wordType, a);
 			}		
 		}	
 	}
@@ -93,8 +98,8 @@ public class MadLib {
 					String newLine = "";
 					newLine += line.substring(0, line.indexOf("("));	// adds everything before (
 					
-					String[] phrase = phrases.get(wordType);
-					newLine += phrase[0];	// adds the phrase
+					ArrayList<String> phrase = phrases.get(wordType);
+					newLine += phrase.remove(0);						// adds the phrase to the output file
 					
 					newLine += line.substring(line.indexOf(")")+1, line.length());	// adds everything after )
 					
