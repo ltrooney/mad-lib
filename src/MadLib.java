@@ -33,23 +33,35 @@ public class MadLib {
 			
 			// read through each line, terminate at EOF
 			while((line = br.readLine())!= null) {
-				if(line.contains("(") && line.contains(")")) {
-					int openParen = line.indexOf("(");
-					int closeParen = line.indexOf(")");
-					String wordType = line.substring(openParen+1, closeParen);		// the type of phrase that will be asked
+				if(!(line.contains("(") && line.contains(")"))) {
+					continue;
+				}
+				
+				int openParen = 0;						// tracks index of open parenthesis	
+				int closedParen = 0;					// tracks index of closed parenthesis
+				int lastPhraseEnd = 0;					// tracks index of where the last phrase ends
+				
+				while((openParen = line.indexOf("(", closedParen)) != -1) {			// iterates while there are still '(' left in the line					
+					String outputLine = "";
+					outputLine = line.substring(lastPhraseEnd, openParen);			// get all words from after the last phrase up until the parenthesis
+					
+					
+					closedParen = line.indexOf(")", openParen+1);					// tracks index of corresponding closed parenthesis
+					String wordType = line.substring(openParen+1, closedParen);		// the type of phrase that will be asked
 					
 					System.out.print(wordType+": ");
 					String phrase = scan.nextLine();								// gets the phrase from the user for the word type
 					
 					
-					String outputLine = "";
-					outputLine += line.substring(0, line.indexOf("("));				// adds everything before (
 					outputLine += phrase;											// adds the phrase to the output file
-					outputLine += line.substring(line.indexOf(")")+1, line.length());	// adds everything after )
+					fw.write(outputLine);											// prints from (not including) last phrase to (including) new phrase
 					
-					System.out.println("writing..."+outputLine);
-					fw.write(outputLine + "\n");
-				}				
+					lastPhraseEnd = closedParen+1;									// index of last letter of last phrase
+					
+					// can print to file from after the last phrase up until the current phrase
+				}
+				fw.write(line.substring(lastPhraseEnd, line.length()));		// adds rest of the line
+				fw.write("\n");
 			}	
 			scan.close();
 			br.close();
